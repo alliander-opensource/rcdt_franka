@@ -36,6 +36,12 @@ static_transform_publisher = Node(
     arguments=["--frame-id", "world", "--child-frame-id", "base"],
 )
 
+gripper_action_server = Node(
+    package="rcdt_franka",
+    executable="gripper_action_server.py",
+    output="screen",
+)
+
 
 def generate_launch_description() -> LaunchDescription:
     return LaunchDescription(
@@ -44,5 +50,6 @@ def generate_launch_description() -> LaunchDescription:
             spawn_robot,
             sync_clock,
             static_transform_publisher,
+            gripper_action_server,
         ]
     )
