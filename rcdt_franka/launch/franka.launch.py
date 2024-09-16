@@ -81,6 +81,14 @@ fr3_arm_controller = Node(
 )
 # /fr3_arm_controller
 
+# gripper_controller
+gripper_controller = Node(
+    package="controller_manager",
+    executable="spawner",
+    arguments=["gripper_action_controller", "-p", controllers_config],
+)
+# /gripper_controller
+
 # moveit
 moveit = Node(
     package="moveit_ros_move_group",
@@ -114,6 +122,7 @@ def generate_launch_description() -> LaunchDescription:
             robot,
             joint_state_broadcaster,
             fr3_arm_controller,
+            gripper_controller,
             rviz if ARGS.get_value("rviz") == "true" else skip,
             moveit if ARGS.get_value("moveit") == "classic" else skip,
             moveit_servo if ARGS.get_value("moveit") == "servo" else skip,
