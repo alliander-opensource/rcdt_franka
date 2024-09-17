@@ -18,7 +18,7 @@ ARGS = LaunchArguments()
 ARGS.add_value("simulation", "true", ["true", "false"])
 ARGS.add_value("rviz", "true", ["true", "false"])
 ARGS.add_value("moveit", "off", ["classic", "servo", "off"])
-ARGS.add_value("gamepad", "virtual", ["xbox", "virtual"])
+ARGS.add_value("gamepad", "virtual", ["xbox", "stadia", "virtual"])
 ARGS.update_from_sys()
 
 xacro_path = get_file_path("franka_description", ["robots", "fr3"], "fr3.urdf.xacro")
@@ -107,7 +107,11 @@ moveit_servo = Node(
 # /moveit_servo
 
 # gamepad
-gamepad = Node(package="rcdt_utilities", executable="gamepad_node.py")
+gamepad = Node(
+    package="rcdt_utilities",
+    executable="gamepad_node.py",
+    parameters=[{"gamepad": ARGS.get_value("gamepad")}],
+)
 # /gamepad
 
 
