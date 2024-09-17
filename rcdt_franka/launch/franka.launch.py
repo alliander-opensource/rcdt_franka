@@ -25,11 +25,12 @@ xacro_path = get_file_path("franka_description", ["robots", "fr3"], "fr3.urdf.xa
 xacro_arguments = {"ros2_control": "true"}
 if ARGS.get_value("simulation") == "true":
     xacro_arguments["gazebo"] = "true"
+    controllers_yaml = "simulation_controllers.yaml"
 else:
     xacro_arguments["robot_ip"] = "172.16.0.2"
+    controllers_yaml = "robot_controllers.yaml"
 robot_description = get_robot_description(xacro_path, xacro_arguments)
-
-controllers_config = get_file_path("rcdt_franka", ["config"], "ros_controller.yaml")
+controllers_config = get_file_path("rcdt_franka", ["config"], controllers_yaml)
 moveit_config = MoveItConfigsBuilder("fr3", package_name="rcdt_franka_moveit_config")
 servo_config = get_yaml(get_file_path("rcdt_franka", ["config"], "servo_params.yaml"))
 # /configs
