@@ -6,7 +6,7 @@ fr3_arm_controller:
   ros__parameters:
     type: joint_trajectory_controller/JointTrajectoryController
     command_interfaces:
-      - position
+      - effort
     state_interfaces:
       - position
       - velocity
