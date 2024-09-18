@@ -5,10 +5,8 @@
 from launch import LaunchDescription
 from launch.actions import Shutdown
 from launch_ros.actions import Node
-
 from rcdt_utilities.launch_utils import get_file_path
 
-# Opstarten robot
 franka_controllers = param_file = get_file_path(
     "franka_bringup", ["config"], "controllers.yaml"
 )
@@ -51,8 +49,6 @@ joint_state_publisher = Node(
         }
     ],
 )
-
-# /Opstarten robot
 
 
 def generate_launch_description() -> LaunchDescription:
