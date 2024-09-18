@@ -42,6 +42,15 @@ gripper_action_server = Node(
     output="screen",
 )
 
+controllers_config = get_file_path(
+    "rcdt_franka", ["config"], "simulation_controllers.yaml"
+)
+gripper_action_controller = Node(
+    package="controller_manager",
+    executable="spawner",
+    arguments=["gripper_action_controller", "-p", controllers_config],
+)
+
 
 def generate_launch_description() -> LaunchDescription:
     return LaunchDescription(
@@ -51,5 +60,6 @@ def generate_launch_description() -> LaunchDescription:
             sync_clock,
             static_transform_publisher,
             gripper_action_server,
+            gripper_action_controller,
         ]
     )
