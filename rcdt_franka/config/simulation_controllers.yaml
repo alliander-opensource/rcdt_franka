@@ -19,6 +19,8 @@ fr3_arm_controller:
       - fr3_joint6
       - fr3_joint7
 
+    allow_nonzero_velocity_at_trajectory_end: true
+
 gripper_action_controller:
   ros__parameters:
     type: position_controllers/GripperActionController

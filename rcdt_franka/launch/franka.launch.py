@@ -79,7 +79,7 @@ moveit = Node(
 servo_params = {"moveit_servo": servo_config}
 moveit_servo = Node(
     package="moveit_servo",
-    executable="servo_node_main",
+    executable="servo_node",
     parameters=[servo_params, moveit_config.to_dict()],
 )
 
