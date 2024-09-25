@@ -19,6 +19,7 @@ install(
 # Install Python executables
 install(PROGRAMS
   nodes/gripper_action_server.py
+  nodes/settings_setter.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
