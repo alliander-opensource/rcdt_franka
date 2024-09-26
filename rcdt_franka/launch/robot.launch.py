@@ -31,7 +31,7 @@ settings_setter = Node(
 )
 
 gripper_config = get_file_path("franka_gripper", ["config"], "franka_gripper_node.yaml")
-franka_gripper = Node(
+fr3_gripper = Node(
     package="franka_gripper",
     executable="franka_gripper_node",
     name="fr3_gripper",
@@ -62,7 +62,7 @@ def generate_launch_description() -> LaunchDescription:
         [
             settings_setter,
             ros2_control_node,
-            franka_gripper,
+            fr3_gripper,
             joint_state_publisher,
         ]
     )
