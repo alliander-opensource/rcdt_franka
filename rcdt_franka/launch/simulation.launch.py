@@ -29,16 +29,9 @@ sync_clock = Node(
     arguments=["/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock"],
 )
 
-static_transform_publisher = Node(
-    package="tf2_ros",
-    executable="static_transform_publisher",
-    name="static_tf_world_base",
-    arguments=["--frame-id", "world", "--child-frame-id", "base"],
-)
-
-gripper_action_server = Node(
+fr3_gripper = Node(
     package="rcdt_franka",
-    executable="gripper_action_server.py",
+    executable="simulated_gripper_node.py",
     output="screen",
 )
 
@@ -58,8 +51,7 @@ def generate_launch_description() -> LaunchDescription:
             gazebo,
             spawn_robot,
             sync_clock,
-            static_transform_publisher,
-            gripper_action_server,
+            fr3_gripper,
             gripper_action_controller,
         ]
     )

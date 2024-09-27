@@ -50,7 +50,7 @@ joint_state_publisher = Node(
     name="joint_state_publisher",
     parameters=[
         {
-            "source_list": ["/franka/joint_states", "franka_gripper_node/joint_states"],
+            "source_list": ["/franka/joint_states", "fr3_gripper/joint_states"],
             "rate": 30,
         }
     ],
