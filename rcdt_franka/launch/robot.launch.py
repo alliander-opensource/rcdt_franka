@@ -5,10 +5,8 @@
 from launch import LaunchDescription
 from launch.actions import Shutdown
 from launch_ros.actions import Node
-
 from rcdt_utilities.launch_utils import get_file_path
 
-# Opstarten robot
 franka_controllers = param_file = get_file_path(
     "franka_bringup", ["config"], "controllers.yaml"
 )
@@ -27,10 +25,16 @@ ros2_control_node = Node(
     on_exit=Shutdown(),
 )
 
+settings_setter = Node(
+    package="rcdt_franka",
+    executable="settings_setter.py",
+)
+
 gripper_config = get_file_path("franka_gripper", ["config"], "franka_gripper_node.yaml")
-franka_gripper = Node(
+fr3_gripper = Node(
     package="franka_gripper",
     executable="franka_gripper_node",
+    name="fr3_gripper",
     parameters=[
         {
             "robot_ip": "172.16.0.2",
@@ -46,20 +50,19 @@ joint_state_publisher = Node(
     name="joint_state_publisher",
     parameters=[
         {
-            "source_list": ["/franka/joint_states", "franka_gripper_node/joint_states"],
+            "source_list": ["/franka/joint_states", "fr3_gripper/joint_states"],
             "rate": 30,
         }
     ],
 )
 
-# /Opstarten robot
-
 
 def generate_launch_description() -> LaunchDescription:
     return LaunchDescription(
         [
+            settings_setter,
             ros2_control_node,
-            franka_gripper,
+            fr3_gripper,
             joint_state_publisher,
         ]
     )
