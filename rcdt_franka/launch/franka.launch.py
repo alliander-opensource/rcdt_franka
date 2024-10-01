@@ -69,7 +69,8 @@ def launch_setup(context: LaunchContext) -> None:
     )
 
     moveit = IncludeLaunchDescription(
-        get_file_path("rcdt_franka", ["launch"], "moveit.launch.py")
+        get_file_path("rcdt_utilities", ["launch"], "moveit.launch.py"),
+        launch_arguments={"moveit_config_package": "rcdt_franka_moveit_config"}.items(),
     )
 
     skip = LaunchDescriptionEntity()
