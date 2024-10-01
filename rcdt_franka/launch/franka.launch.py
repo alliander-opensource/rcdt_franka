@@ -24,12 +24,9 @@ def launch_setup(context: LaunchContext) -> None:
     xacro_arguments = {"ros2_control": "true"}
     if simulation_arg.value(context):
         xacro_arguments["gazebo"] = "true"
-        controllers_yaml = "simulation_controllers.yaml"
     else:
         xacro_arguments["robot_ip"] = "172.16.0.2"
-        controllers_yaml = "robot_controllers.yaml"
     robot_description = get_robot_description(xacro_path, xacro_arguments)
-    controllers_config = get_file_path("rcdt_franka", ["config"], controllers_yaml)
 
     robot_state_publisher = Node(
         package="robot_state_publisher",
@@ -39,7 +36,7 @@ def launch_setup(context: LaunchContext) -> None:
 
     if simulation_arg.value(context):
         robot = IncludeLaunchDescription(
-            get_file_path("rcdt_franka", ["launch"], "simulation.launch.py")
+            get_file_path("rcdt_utilities", ["launch"], "gazebo_robot.launch.py")
         )
     else:
         robot = IncludeLaunchDescription(
@@ -52,10 +49,13 @@ def launch_setup(context: LaunchContext) -> None:
         arguments=["joint_state_broadcaster"],
     )
 
-    fr3_arm_controller = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["fr3_arm_controller", "-p", controllers_config],
+    controllers = IncludeLaunchDescription(
+        get_file_path("rcdt_franka", ["launch"], "controllers.launch.py"),
+        launch_arguments={
+            "simulation": str(simulation_arg.value(context)),
+            "arm_controller": "fr3_arm_controller",
+            "gripper_controller": "fr3_gripper",
+        }.items(),
     )
 
     rviz = IncludeLaunchDescription(
@@ -79,7 +79,7 @@ def launch_setup(context: LaunchContext) -> None:
         robot_state_publisher,
         robot,
         joint_state_broadcaster,
-        fr3_arm_controller,
+        controllers,
         rviz if run_rviz_arg.value(context) else skip,
         moveit,
     ]

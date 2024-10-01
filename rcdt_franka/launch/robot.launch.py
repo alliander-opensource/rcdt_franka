@@ -30,20 +30,6 @@ settings_setter = Node(
     executable="settings_setter.py",
 )
 
-gripper_config = get_file_path("franka_gripper", ["config"], "franka_gripper_node.yaml")
-fr3_gripper = Node(
-    package="franka_gripper",
-    executable="franka_gripper_node",
-    name="fr3_gripper",
-    parameters=[
-        {
-            "robot_ip": "172.16.0.2",
-            "joint_names": ["fr3_finger_joint1", "fr3_finger_joint2"],
-        },
-        gripper_config,
-    ],
-)
-
 joint_state_publisher = Node(
     package="joint_state_publisher",
     executable="joint_state_publisher",
@@ -62,7 +48,6 @@ def generate_launch_description() -> LaunchDescription:
         [
             settings_setter,
             ros2_control_node,
-            fr3_gripper,
             joint_state_publisher,
         ]
     )
