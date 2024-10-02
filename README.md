@@ -4,7 +4,7 @@ SPDX-FileCopyrightText: Alliander N. V.
 SPDX-License-Identifier: Apache-2.0
 -->
 
-# RCDT Linting
+# RCDT Franka
 
 This repository contains code for use with the Franka Research 3 by [Franka Robotics](https://franka.de/).
 It is intended to be used alongside the other repositories in [RCDT robotics](<Link tbd>).
