@@ -2,107 +2,95 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from launch import LaunchDescription, LaunchDescriptionEntity
-from launch.actions import IncludeLaunchDescription
+from launch import LaunchDescription, LaunchContext, LaunchDescriptionEntity
+from launch.actions import OpaqueFunction, IncludeLaunchDescription
 from launch_ros.actions import Node, SetParameter
-from moveit_configs_utils import MoveItConfigsBuilder
 
 from rcdt_utilities.launch_utils import (
     get_file_path,
-    get_yaml,
     get_robot_description,
-    LaunchArguments,
+    LaunchArgument,
 )
 
-ARGS = LaunchArguments()
-ARGS.add_value("simulation", "true", ["true", "false"])
-ARGS.add_value("rviz", "true", ["true", "false"])
-ARGS.add_value("moveit", "off", ["classic", "servo", "off"])
-ARGS.update_from_sys()
+simulation_arg = LaunchArgument("simulation", True, [True, False])
+run_rviz_arg = LaunchArgument("rviz", False, [True, False])
+moveit_arg = LaunchArgument("moveit", "off", ["classic", "servo", "off"])
 
-xacro_path = get_file_path("franka_description", ["robots", "fr3"], "fr3.urdf.xacro")
-xacro_arguments = {"ros2_control": "true"}
-if ARGS.get_value("simulation") == "true":
-    xacro_arguments["gazebo"] = "true"
-    controllers_yaml = "simulation_controllers.yaml"
-else:
-    xacro_arguments["robot_ip"] = "172.16.0.2"
-    controllers_yaml = "robot_controllers.yaml"
-robot_description = get_robot_description(xacro_path, xacro_arguments)
-controllers_config = get_file_path("rcdt_franka", ["config"], controllers_yaml)
-moveit_config = MoveItConfigsBuilder("fr3", package_name="rcdt_franka_moveit_config")
-servo_config = get_yaml(get_file_path("rcdt_franka", ["config"], "servo_params.yaml"))
 
-robot_state_publisher = Node(
-    package="robot_state_publisher",
-    executable="robot_state_publisher",
-    parameters=[robot_description],
-)
-
-if ARGS.get_value("simulation") == "true":
-    robot = IncludeLaunchDescription(
-        get_file_path("rcdt_franka", ["launch"], "simulation.launch.py")
+def launch_setup(context: LaunchContext) -> None:
+    xacro_path = get_file_path(
+        "franka_description", ["robots", "fr3"], "fr3.urdf.xacro"
     )
-else:
-    robot = IncludeLaunchDescription(
-        get_file_path("rcdt_franka", ["launch"], "robot.launch.py")
+    xacro_arguments = {"ros2_control": "true"}
+    if simulation_arg.value(context):
+        xacro_arguments["gazebo"] = "true"
+    else:
+        xacro_arguments["robot_ip"] = "172.16.0.2"
+    robot_description = get_robot_description(xacro_path, xacro_arguments)
+
+    robot_state_publisher = Node(
+        package="robot_state_publisher",
+        executable="robot_state_publisher",
+        parameters=[robot_description],
     )
 
-joint_state_broadcaster = Node(
-    package="controller_manager",
-    executable="spawner",
-    arguments=["joint_state_broadcaster"],
-)
+    if simulation_arg.value(context):
+        robot = IncludeLaunchDescription(
+            get_file_path("rcdt_utilities", ["launch"], "gazebo_robot.launch.py")
+        )
+    else:
+        robot = IncludeLaunchDescription(
+            get_file_path("rcdt_franka", ["launch"], "robot.launch.py")
+        )
 
-display_config = get_file_path("rcdt_franka", ["rviz"], "general.rviz")
-if ARGS.get_value("moveit") == "classic":
-    display_config = get_file_path("rcdt_franka", ["rviz"], "moveit.rviz")
-rviz = Node(
-    package="rviz2",
-    executable="rviz2",
-    arguments=["--display-config", display_config, "-f" "fr3_link0"],
-    parameters=[moveit_config.to_dict()],
-)
+    joint_state_broadcaster = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["joint_state_broadcaster"],
+    )
 
-fr3_arm_controller = Node(
-    package="controller_manager",
-    executable="spawner",
-    arguments=["fr3_arm_controller", "-p", controllers_config],
-)
+    controllers = IncludeLaunchDescription(
+        get_file_path("rcdt_franka", ["launch"], "controllers.launch.py"),
+        launch_arguments={
+            "simulation": str(simulation_arg.value(context)),
+            "arm_controller": "fr3_arm_controller",
+            "gripper_controller": "fr3_gripper",
+        }.items(),
+    )
 
-moveit = Node(
-    package="moveit_ros_move_group",
-    executable="move_group",
-    parameters=[moveit_config.to_dict()],
-)
+    rviz = IncludeLaunchDescription(
+        get_file_path("rcdt_utilities", ["launch"], "rviz.launch.py"),
+        launch_arguments={
+            "rviz_frame": "fr3_link0",
+            "rviz_load_moveit": str(moveit_arg.value(context) == "classic"),
+            "rviz_load_moveit_robot": "fr3",
+            "rviz_load_moveit_package": "rcdt_franka_moveit_config",
+        }.items(),
+    )
 
-servo_params = {"moveit_servo": servo_config}
-moveit_servo = Node(
-    package="moveit_servo",
-    executable="servo_node_main",
-    parameters=[servo_params, moveit_config.to_dict()],
-)
+    moveit = IncludeLaunchDescription(
+        get_file_path("rcdt_utilities", ["launch"], "moveit.launch.py"),
+        launch_arguments={"moveit_config_package": "rcdt_franka_moveit_config"}.items(),
+    )
 
-gamepad = Node(
-    package="rcdt_utilities",
-    executable="gamepad_node.py",
-)
+    skip = LaunchDescriptionEntity()
+    return [
+        SetParameter(name="use_sim_time", value=simulation_arg.value(context)),
+        robot_state_publisher,
+        robot,
+        joint_state_broadcaster,
+        controllers,
+        rviz if run_rviz_arg.value(context) else skip,
+        moveit,
+    ]
 
 
 def generate_launch_description() -> LaunchDescription:
-    skip = LaunchDescriptionEntity()
     return LaunchDescription(
         [
-            SetParameter(name="use_sim_time", value=True)
-            if ARGS.get_value("simulation") == "true"
-            else skip,
-            robot_state_publisher,
-            robot,
-            joint_state_broadcaster,
-            fr3_arm_controller,
-            rviz if ARGS.get_value("rviz") == "true" else skip,
-            moveit if ARGS.get_value("moveit") == "classic" else skip,
-            moveit_servo if ARGS.get_value("moveit") == "servo" else skip,
-            gamepad if ARGS.get_value("moveit") == "servo" else skip,
+            simulation_arg.declaration,
+            run_rviz_arg.declaration,
+            moveit_arg.declaration,
+            OpaqueFunction(function=launch_setup),
         ]
     )

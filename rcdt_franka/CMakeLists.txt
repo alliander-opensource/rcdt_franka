@@ -12,7 +12,7 @@ find_package(ament_cmake_python REQUIRED)
 # Install project launch files
 install(
   DIRECTORY
-    launch config rviz
+    launch config
   DESTINATION share/${PROJECT_NAME}
 )
 
