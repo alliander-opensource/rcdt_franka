@@ -73,6 +73,23 @@ def launch_setup(context: LaunchContext) -> None:
         launch_arguments={"moveit_config_package": "rcdt_franka_moveit_config"}.items(),
     )
 
+    joy = Node(
+        package="joy",
+        executable="game_controller_node",
+        parameters=[
+            {"sticky_buttons": True},
+        ],
+    )
+
+    joy_to_twist_node = Node(
+        package="rcdt_utilities",
+        executable="joy_to_twist_node.py",
+        parameters=[
+            {"pub_topic": "/servo_node/delta_twist_cmds"},
+            {"config_pkg": "rcdt_franka"},
+        ],
+    )
+
     skip = LaunchDescriptionEntity()
     return [
         SetParameter(name="use_sim_time", value=simulation_arg.value(context)),
@@ -82,6 +99,8 @@ def launch_setup(context: LaunchContext) -> None:
         controllers,
         rviz if run_rviz_arg.value(context) else skip,
         moveit,
+        joy if moveit_arg.value(context) == "servo" else skip,
+        joy_to_twist_node if moveit_arg.value(context) == "servo" else skip,
     ]
 
 
