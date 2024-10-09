@@ -9,14 +9,14 @@ project(rcdt_franka)
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_python REQUIRED)
 
-# Install project launch files
+# Install project files
 install(
   DIRECTORY
-    launch config
+  launch config
   DESTINATION share/${PROJECT_NAME}
 )
 
-# Install Python executables
+# Install nodes
 install(PROGRAMS
   nodes/simulated_gripper_node.py
   nodes/joy_to_gripper_node.py
