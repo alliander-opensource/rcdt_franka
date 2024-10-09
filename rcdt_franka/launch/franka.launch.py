@@ -13,7 +13,7 @@ from rcdt_utilities.launch_utils import (
 )
 
 simulation_arg = LaunchArgument("simulation", True, [True, False])
-run_rviz_arg = LaunchArgument("rviz", False, [True, False])
+rviz_arg = LaunchArgument("rviz", False, [True, False])
 moveit_arg = LaunchArgument("moveit", "off", ["classic", "servo", "off"])
 
 
@@ -102,7 +102,7 @@ def launch_setup(context: LaunchContext) -> None:
         robot,
         joint_state_broadcaster,
         controllers,
-        rviz if run_rviz_arg.value(context) else skip,
+        rviz if rviz_arg.value(context) else skip,
         moveit,
         joy,
         joy_to_twist if moveit_arg.value(context) == "servo" else skip,
@@ -114,7 +114,7 @@ def generate_launch_description() -> LaunchDescription:
     return LaunchDescription(
         [
             simulation_arg.declaration,
-            run_rviz_arg.declaration,
+            rviz_arg.declaration,
             moveit_arg.declaration,
             OpaqueFunction(function=launch_setup),
         ]
