@@ -15,7 +15,7 @@ MAX = 0.039
 MIN = 0.001
 
 
-class GripperActionClient(Node):
+class GripperActionControllerClient(Node):
     def __init__(self):
         super().__init__("gripper_action_controller_client")
         self.client = ActionClient(
@@ -35,10 +35,10 @@ class GripperActionClient(Node):
         return min(MAX, max(MIN, width))
 
 
-class GripperActionServer(Node):
-    def __init__(self, gripper_action_client: GripperActionClient):
+class FrankaGripperSimulation(Node):
+    def __init__(self, gripper_action_controller_client: GripperActionControllerClient):
         super().__init__("fr3_gripper")
-        self.gripper_action_client = gripper_action_client
+        self.gripper_action_client = gripper_action_controller_client
         ActionServer(self, Grasp, "~/grasp", self.grasp_action)
         ActionServer(self, Homing, "~/homing", self.homing_action)
         ActionServer(self, Move, "~/move", self.move_action)
@@ -77,12 +77,14 @@ def main(args: str = None) -> None:
     rclpy.init(args=args)
     executor = MultiThreadedExecutor()
 
-    gripper_action_client = GripperActionClient()
-    fr3_gripper = GripperActionServer(gripper_action_client)
-    executor.add_node(gripper_action_client)
+    gripper_action_controller_client = GripperActionControllerClient()
+    executor.add_node(gripper_action_controller_client)
+
+    fr3_gripper = FrankaGripperSimulation(gripper_action_controller_client)
     executor.add_node(fr3_gripper)
 
     executor.spin()
+    rclpy.shutdown()
 
 
 if __name__ == "__main__":

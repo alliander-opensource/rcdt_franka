@@ -13,7 +13,7 @@ from rcdt_utilities.launch_utils import (
 )
 
 simulation_arg = LaunchArgument("simulation", True, [True, False])
-run_rviz_arg = LaunchArgument("rviz", False, [True, False])
+rviz_arg = LaunchArgument("rviz", False, [True, False])
 moveit_arg = LaunchArgument("moveit", "off", ["classic", "servo", "off"])
 
 
@@ -73,6 +73,28 @@ def launch_setup(context: LaunchContext) -> None:
         launch_arguments={"moveit_config_package": "rcdt_franka_moveit_config"}.items(),
     )
 
+    joy = Node(
+        package="joy",
+        executable="game_controller_node",
+        parameters=[
+            {"sticky_buttons": True},
+        ],
+    )
+
+    joy_to_twist = Node(
+        package="rcdt_utilities",
+        executable="joy_to_twist_node.py",
+        parameters=[
+            {"pub_topic": "/servo_node/delta_twist_cmds"},
+            {"config_pkg": "rcdt_franka"},
+        ],
+    )
+
+    joy_to_gripper = Node(
+        package="rcdt_franka",
+        executable="joy_to_gripper_node.py",
+    )
+
     skip = LaunchDescriptionEntity()
     return [
         SetParameter(name="use_sim_time", value=simulation_arg.value(context)),
@@ -80,8 +102,11 @@ def launch_setup(context: LaunchContext) -> None:
         robot,
         joint_state_broadcaster,
         controllers,
-        rviz if run_rviz_arg.value(context) else skip,
+        rviz if rviz_arg.value(context) else skip,
         moveit,
+        joy,
+        joy_to_twist if moveit_arg.value(context) == "servo" else skip,
+        joy_to_gripper,
     ]
 
 
@@ -89,7 +114,7 @@ def generate_launch_description() -> LaunchDescription:
     return LaunchDescription(
         [
             simulation_arg.declaration,
-            run_rviz_arg.declaration,
+            rviz_arg.declaration,
             moveit_arg.declaration,
             OpaqueFunction(function=launch_setup),
         ]
