@@ -19,6 +19,7 @@ install(
 # Install Python executables
 install(PROGRAMS
   nodes/simulated_gripper_node.py
+  nodes/joy_to_gripper_node.py
   nodes/settings_setter.py
   DESTINATION lib/${PROJECT_NAME}
 )

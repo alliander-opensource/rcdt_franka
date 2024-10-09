@@ -25,7 +25,5 @@ axes:
   4: "switch_profile"
 
 buttons:
-  9:
-    action: "open_gripper"
-  10:
-    action: "close_gripper"
+  9: "open_gripper"
+  10: "close_gripper"

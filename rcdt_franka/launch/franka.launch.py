@@ -81,13 +81,18 @@ def launch_setup(context: LaunchContext) -> None:
         ],
     )
 
-    joy_to_twist_node = Node(
+    joy_to_twist = Node(
         package="rcdt_utilities",
         executable="joy_to_twist_node.py",
         parameters=[
             {"pub_topic": "/servo_node/delta_twist_cmds"},
             {"config_pkg": "rcdt_franka"},
         ],
+    )
+
+    joy_to_gripper = Node(
+        package="rcdt_franka",
+        executable="joy_to_gripper_node.py",
     )
 
     skip = LaunchDescriptionEntity()
@@ -99,8 +104,9 @@ def launch_setup(context: LaunchContext) -> None:
         controllers,
         rviz if run_rviz_arg.value(context) else skip,
         moveit,
-        joy if moveit_arg.value(context) == "servo" else skip,
-        joy_to_twist_node if moveit_arg.value(context) == "servo" else skip,
+        joy,
+        joy_to_twist if moveit_arg.value(context) == "servo" else skip,
+        joy_to_gripper,
     ]
 
 
