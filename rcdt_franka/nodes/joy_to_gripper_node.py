@@ -13,9 +13,9 @@ from franka_msgs.action import Move, Grasp
 from rcdt_utilities.launch_utils import get_yaml, get_file_path
 
 
-class GripperClient(Node):
+class Fr3GripperClient(Node):
     def __init__(self):
-        super().__init__("gripper_client")
+        super().__init__("fr3_gripper_client")
         self.move_client = ActionClient(self, Move, "/fr3_gripper/move")
         self.grasp_client = ActionClient(self, Grasp, "/fr3_gripper/grasp")
 
@@ -47,7 +47,7 @@ class GripperClient(Node):
 
 
 class JoyToGripper(Node):
-    def __init__(self, gripper_client: GripperClient):
+    def __init__(self, gripper_client: Fr3GripperClient):
         super().__init__("joy_to_gripper")
         self.gripper_client = gripper_client
 
@@ -81,7 +81,7 @@ def main(args: str = None) -> None:
     rclpy.init(args=args)
     executor = MultiThreadedExecutor()
 
-    gripper_client = GripperClient()
+    gripper_client = Fr3GripperClient()
     executor.add_node(gripper_client)
 
     joy_to_gripper = JoyToGripper(gripper_client)

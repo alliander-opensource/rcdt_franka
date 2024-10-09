@@ -37,7 +37,7 @@ def launch_setup(context: LaunchContext) -> None:
     if simulation:
         fr3_gripper = Node(
             package="rcdt_franka",
-            executable="simulated_gripper_node.py",
+            executable="franka_gripper_simulation_node.py",
             output="screen",
         )
     else:
