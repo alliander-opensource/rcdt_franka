@@ -18,10 +18,14 @@ class Fr3GripperClient(Node):
         super().__init__("fr3_gripper_client")
         self.move_client = ActionClient(self, Move, "/fr3_gripper/move")
         self.grasp_client = ActionClient(self, Grasp, "/fr3_gripper/grasp")
+        self.is_gripped=False
 
     def open_gripper(self) -> None:
+        if not self.is_gripped:
+            return
         goal = Move.Goal()
         goal.width = 0.08
+        goal.speed=0.03
 
         if not self.move_client.wait_for_server(timeout_sec=2):
             self.get_logger().warn("Gripper move client not available.")
@@ -30,12 +34,16 @@ class Fr3GripperClient(Node):
         result: Move.Impl.GetResultService.Response = self.move_client.send_goal(goal)
         if not result.result.success:
             self.get_logger().warn("Opening gripper did not succeed.")
+        self.is_gripped=False
 
     def close_gripper(self) -> None:
+        if self.is_gripped:
+            return
         goal = Grasp.Goal()
         goal.width = 0.0
         goal.epsilon.inner = goal.epsilon.outer = 0.08
         goal.force = 100.0
+        goal.speed=0.03
 
         if not self.grasp_client.wait_for_server(timeout_sec=2):
             self.get_logger().warn("Gripper grasp client not available.")
@@ -44,6 +52,7 @@ class Fr3GripperClient(Node):
         result: Grasp.Impl.GetResultService.Response = self.grasp_client.send_goal(goal)
         if not result.result.success:
             self.get_logger().warn("Closing gripper did not succeed.")
+        self.is_gripped=True
 
 
 class JoyToGripper(Node):
