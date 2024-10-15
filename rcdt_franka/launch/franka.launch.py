@@ -87,6 +87,7 @@ def launch_setup(context: LaunchContext) -> None:
         parameters=[
             {"pub_topic": "/servo_node/delta_twist_cmds"},
             {"config_pkg": "rcdt_franka"},
+            {"pub_frame": "fr3_hand"},
         ],
     )
 
