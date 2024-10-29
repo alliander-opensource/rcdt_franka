@@ -12,17 +12,21 @@ from rcdt_utilities.launch_utils import (
     LaunchArgument,
 )
 
-simulation_arg = LaunchArgument("simulation", True, [True, False])
-rviz_arg = LaunchArgument("rviz", False, [True, False])
-moveit_arg = LaunchArgument("moveit", "off", ["classic", "servo", "off"])
+sim_launch_arg = LaunchArgument("simulation", True, [True, False])
+moveit_launch_arg = LaunchArgument("moveit", "off", ["node", "rviz", "servo", "off"])
+rviz_launch_arg = LaunchArgument("rviz", False, [True, False])
 
 
 def launch_setup(context: LaunchContext) -> None:
+    use_sim = sim_launch_arg.value(context)
+    moveit_arg = moveit_launch_arg.value(context)
+    use_rviz = rviz_launch_arg.value(context)
+
     xacro_path = get_file_path(
         "franka_description", ["robots", "fr3"], "fr3.urdf.xacro"
     )
     xacro_arguments = {"ros2_control": "true"}
-    if simulation_arg.value(context):
+    if use_sim:
         xacro_arguments["gazebo"] = "true"
     else:
         xacro_arguments["robot_ip"] = "172.16.0.2"
@@ -34,7 +38,7 @@ def launch_setup(context: LaunchContext) -> None:
         parameters=[robot_description],
     )
 
-    if simulation_arg.value(context):
+    if use_sim:
         robot = IncludeLaunchDescription(
             get_file_path("rcdt_utilities", ["launch"], "gazebo_robot.launch.py")
         )
@@ -52,7 +56,7 @@ def launch_setup(context: LaunchContext) -> None:
     controllers = IncludeLaunchDescription(
         get_file_path("rcdt_franka", ["launch"], "controllers.launch.py"),
         launch_arguments={
-            "simulation": str(simulation_arg.value(context)),
+            "simulation": str(use_sim),
             "arm_controller": "fr3_arm_controller",
             "gripper_controller": "fr3_gripper",
         }.items(),
@@ -60,13 +64,9 @@ def launch_setup(context: LaunchContext) -> None:
 
     rviz = IncludeLaunchDescription(
         get_file_path("rcdt_utilities", ["launch"], "rviz.launch.py"),
-        launch_arguments={
-            "rviz_frame": "fr3_link0",
-            "rviz_load_moveit": str(moveit_arg.value(context) == "classic"),
-            "rviz_load_moveit_robot": "fr3",
-            "rviz_load_moveit_package": "rcdt_franka_moveit_config",
-        }.items(),
+        launch_arguments={"rviz_frame": "fr3_link0"}.items(),
     )
+    load_rviz = (use_rviz or not use_sim) and moveit_arg != "rviz"
 
     moveit = IncludeLaunchDescription(
         get_file_path("rcdt_utilities", ["launch"], "moveit.launch.py"),
@@ -98,15 +98,15 @@ def launch_setup(context: LaunchContext) -> None:
 
     skip = LaunchDescriptionEntity()
     return [
-        SetParameter(name="use_sim_time", value=simulation_arg.value(context)),
+        SetParameter(name="use_sim_time", value=use_sim),
         robot_state_publisher,
         robot,
         joint_state_broadcaster,
         controllers,
-        rviz if rviz_arg.value(context) else skip,
-        moveit,
+        rviz if load_rviz else skip,
+        moveit if moveit_arg != "off" else skip,
         joy,
-        joy_to_twist if moveit_arg.value(context) == "servo" else skip,
+        joy_to_twist if moveit_arg == "servo" else skip,
         joy_to_gripper,
     ]
 
@@ -114,9 +114,9 @@ def launch_setup(context: LaunchContext) -> None:
 def generate_launch_description() -> LaunchDescription:
     return LaunchDescription(
         [
-            simulation_arg.declaration,
-            rviz_arg.declaration,
-            moveit_arg.declaration,
+            sim_launch_arg.declaration,
+            rviz_launch_arg.declaration,
+            moveit_launch_arg.declaration,
             OpaqueFunction(function=launch_setup),
         ]
     )
