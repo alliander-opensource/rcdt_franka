@@ -62,9 +62,13 @@ def launch_setup(context: LaunchContext) -> None:
         }.items(),
     )
 
+    rviz_display_config = get_file_path("rcdt_franka", ["rviz"], "general.rviz")
     rviz = IncludeLaunchDescription(
         get_file_path("rcdt_utilities", ["launch"], "rviz.launch.py"),
-        launch_arguments={"rviz_frame": "fr3_link0"}.items(),
+        launch_arguments={
+            "rviz_frame": "world",
+            "rviz_display_config": rviz_display_config,
+        }.items(),
     )
     load_rviz = (use_rviz or not use_sim) and moveit_arg != "rviz"
 
