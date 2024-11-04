@@ -6,7 +6,7 @@ from launch import LaunchDescription, LaunchContext, LaunchDescriptionEntity
 from launch.actions import OpaqueFunction
 from launch_ros.actions import Node
 
-from rcdt_utilities_py.launch_utils import LaunchArgument, get_file_path
+from rcdt_utilities.launch_utils import LaunchArgument, get_file_path
 
 simulation_arg = LaunchArgument("simulation", True, [True, False])
 arm_controller_arg = LaunchArgument("arm_controller", "fr3_arm_controller")

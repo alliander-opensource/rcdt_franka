@@ -5,7 +5,7 @@
 from launch import LaunchDescription
 from launch.actions import Shutdown
 from launch_ros.actions import Node
-from rcdt_utilities_py.launch_utils import get_file_path
+from rcdt_utilities.launch_utils import get_file_path
 
 franka_controllers = param_file = get_file_path(
     "franka_bringup", ["config"], "controllers.yaml"

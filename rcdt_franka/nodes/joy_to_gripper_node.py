@@ -10,7 +10,7 @@ from rclpy.action import ActionClient
 from rclpy.executors import MultiThreadedExecutor
 from sensor_msgs.msg import Joy
 from franka_msgs.action import Move, Grasp
-from rcdt_utilities_py.launch_utils import get_yaml, get_file_path
+from rcdt_utilities.launch_utils import get_yaml, get_file_path
 
 
 class Fr3GripperClient(Node):

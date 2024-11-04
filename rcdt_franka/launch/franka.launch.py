@@ -6,7 +6,7 @@ from launch import LaunchDescription, LaunchContext, LaunchDescriptionEntity
 from launch.actions import OpaqueFunction, IncludeLaunchDescription
 from launch_ros.actions import Node, SetParameter
 
-from rcdt_utilities_py.launch_utils import (
+from rcdt_utilities.launch_utils import (
     get_file_path,
     get_robot_description,
     LaunchArgument,
