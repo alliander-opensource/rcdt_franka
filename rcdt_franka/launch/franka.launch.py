@@ -47,6 +47,13 @@ def launch_setup(context: LaunchContext) -> None:
             get_file_path("rcdt_franka", ["launch"], "robot.launch.py")
         )
 
+    static_transform_publisher = Node(
+        package="tf2_ros",
+        executable="static_transform_publisher",
+        name="static_tf_world",
+        arguments=["--frame-id", "world", "--child-frame-id", "base"],
+    )
+
     joint_state_broadcaster = Node(
         package="controller_manager",
         executable="spawner",
@@ -62,13 +69,10 @@ def launch_setup(context: LaunchContext) -> None:
         }.items(),
     )
 
-    rviz_display_config = get_file_path("rcdt_franka", ["rviz"], "general.rviz")
+    rviz_display_config = get_file_path("rcdt_utilities", ["rviz"], "markers.rviz")
     rviz = IncludeLaunchDescription(
         get_file_path("rcdt_utilities", ["launch"], "rviz.launch.py"),
-        launch_arguments={
-            "rviz_frame": "world",
-            "rviz_display_config": rviz_display_config,
-        }.items(),
+        launch_arguments={"rviz_display_config": rviz_display_config}.items(),
     )
     load_rviz = (use_rviz or not use_sim) and moveit_arg != "rviz"
 
@@ -105,6 +109,7 @@ def launch_setup(context: LaunchContext) -> None:
         SetParameter(name="use_sim_time", value=use_sim),
         robot_state_publisher,
         robot,
+        static_transform_publisher,
         joint_state_broadcaster,
         controllers,
         rviz if load_rviz else skip,
