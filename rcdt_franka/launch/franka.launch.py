@@ -89,10 +89,17 @@ def launch_setup(context: LaunchContext) -> None:
         ],
     )
 
-    joy_to_twist = Node(
+    joy_topic_manager = Node(
+        package="rcdt_mobile_manipulator",
+        executable="joy_topic_manager_node.py",
+    )
+
+    joy_to_twist_franka = Node(
         package="rcdt_utilities",
         executable="joy_to_twist_node.py",
+        namespace="franka",
         parameters=[
+            {"sub_topic": "/franka/joy"},
             {"pub_topic": "/servo_node/delta_twist_cmds"},
             {"config_pkg": "rcdt_franka"},
             {"pub_frame": "fr3_hand"},
@@ -115,7 +122,8 @@ def launch_setup(context: LaunchContext) -> None:
         rviz if load_rviz else skip,
         moveit if moveit_arg != "off" else skip,
         joy,
-        joy_to_twist if moveit_arg == "servo" else skip,
+        joy_topic_manager if moveit_arg == "servo" else skip,
+        joy_to_twist_franka if moveit_arg == "servo" else skip,
         joy_to_gripper,
     ]
 
