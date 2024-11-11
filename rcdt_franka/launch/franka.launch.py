@@ -12,15 +12,15 @@ from rcdt_utilities.launch_utils import (
     LaunchArgument,
 )
 
-sim_launch_arg = LaunchArgument("simulation", True, [True, False])
-moveit_launch_arg = LaunchArgument("moveit", "off", ["node", "rviz", "servo", "off"])
-rviz_launch_arg = LaunchArgument("rviz", False, [True, False])
+use_sim_arg = LaunchArgument("simulation", True, [True, False])
+moveit_mode_arg = LaunchArgument("moveit", "off", ["node", "rviz", "servo", "off"])
+use_rviz_arg = LaunchArgument("rviz", False, [True, False])
 
 
 def launch_setup(context: LaunchContext) -> None:
-    use_sim = sim_launch_arg.value(context)
-    moveit_arg = moveit_launch_arg.value(context)
-    use_rviz = rviz_launch_arg.value(context)
+    use_sim = use_sim_arg.value(context)
+    moveit_mode = moveit_mode_arg.value(context)
+    use_rviz = use_rviz_arg.value(context)
 
     xacro_path = get_file_path(
         "franka_description", ["robots", "fr3"], "fr3.urdf.xacro"
@@ -74,7 +74,7 @@ def launch_setup(context: LaunchContext) -> None:
         get_file_path("rcdt_utilities", ["launch"], "rviz.launch.py"),
         launch_arguments={"rviz_display_config": rviz_display_config}.items(),
     )
-    load_rviz = (use_rviz or not use_sim) and moveit_arg != "rviz"
+    load_rviz = (use_rviz or not use_sim) and moveit_mode != "rviz"
 
     moveit = IncludeLaunchDescription(
         get_file_path("rcdt_utilities", ["launch"], "moveit.launch.py"),
@@ -120,10 +120,10 @@ def launch_setup(context: LaunchContext) -> None:
         joint_state_broadcaster,
         controllers,
         rviz if load_rviz else skip,
-        moveit if moveit_arg != "off" else skip,
+        moveit if moveit_mode != "off" else skip,
         joy,
-        joy_topic_manager if moveit_arg == "servo" else skip,
-        joy_to_twist_franka if moveit_arg == "servo" else skip,
+        joy_topic_manager if moveit_mode == "servo" else skip,
+        joy_to_twist_franka if moveit_mode == "servo" else skip,
         joy_to_gripper,
     ]
 
@@ -131,9 +131,9 @@ def launch_setup(context: LaunchContext) -> None:
 def generate_launch_description() -> LaunchDescription:
     return LaunchDescription(
         [
-            sim_launch_arg.declaration,
-            rviz_launch_arg.declaration,
-            moveit_launch_arg.declaration,
+            use_sim_arg.declaration,
+            use_rviz_arg.declaration,
+            moveit_mode_arg.declaration,
             OpaqueFunction(function=launch_setup),
         ]
     )
