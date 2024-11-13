@@ -13,23 +13,22 @@ from rcdt_utilities.launch_utils import (
 )
 
 use_sim_arg = LaunchArgument("simulation", True, [True, False])
+use_rviz_arg = LaunchArgument("rviz", True, [True, False])
+use_realsense_arg = LaunchArgument("realsense", False, [True, False])
 moveit_mode_arg = LaunchArgument("moveit", "off", ["node", "rviz", "servo", "off"])
-use_rviz_arg = LaunchArgument("rviz", False, [True, False])
 
 
 def launch_setup(context: LaunchContext) -> None:
     use_sim = use_sim_arg.value(context)
-    moveit_mode = moveit_mode_arg.value(context)
     use_rviz = use_rviz_arg.value(context)
+    use_realsense = use_realsense_arg.value(context)
+    moveit_mode = moveit_mode_arg.value(context)
 
-    xacro_path = get_file_path(
-        "franka_description", ["robots", "fr3"], "fr3.urdf.xacro"
-    )
-    xacro_arguments = {"ros2_control": "true"}
-    if use_sim:
-        xacro_arguments["gazebo"] = "true"
-    else:
-        xacro_arguments["robot_ip"] = "172.16.0.2"
+    xacro_path = get_file_path("rcdt_franka", ["urdf"], "franka.urdf.xacro")
+    xacro_arguments = {}
+    xacro_arguments["robot_ip"] = "172.16.0.2"
+    xacro_arguments["gazebo"] = "true" if use_sim else "false"
+    xacro_arguments["load_realsense"] = "true" if use_realsense else "false"
     robot_description = get_robot_description(xacro_path, xacro_arguments)
 
     robot_state_publisher = Node(
@@ -133,6 +132,7 @@ def generate_launch_description() -> LaunchDescription:
         [
             use_sim_arg.declaration,
             use_rviz_arg.declaration,
+            use_realsense_arg.declaration,
             moveit_mode_arg.declaration,
             OpaqueFunction(function=launch_setup),
         ]
