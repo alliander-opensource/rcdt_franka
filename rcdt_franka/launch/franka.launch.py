@@ -68,16 +68,21 @@ def launch_setup(context: LaunchContext) -> None:
         }.items(),
     )
 
-    rviz_display_config = get_file_path("rcdt_utilities", ["rviz"], "markers.rviz")
     rviz = IncludeLaunchDescription(
         get_file_path("rcdt_utilities", ["launch"], "rviz.launch.py"),
-        launch_arguments={"rviz_display_config": rviz_display_config}.items(),
+        launch_arguments={
+            "moveit": moveit_mode,
+            "moveit_package_name": "rcdt_franka_moveit_config",
+        }.items(),
     )
-    load_rviz = (use_rviz or not use_sim) and moveit_mode != "rviz"
 
     moveit = IncludeLaunchDescription(
         get_file_path("rcdt_utilities", ["launch"], "moveit.launch.py"),
-        launch_arguments={"moveit_config_package": "rcdt_franka_moveit_config"}.items(),
+        launch_arguments={
+            "simulation": str(use_sim),
+            "moveit": moveit_mode,
+            "moveit_package_name": "rcdt_franka_moveit_config",
+        }.items(),
     )
 
     joy = Node(
@@ -118,7 +123,7 @@ def launch_setup(context: LaunchContext) -> None:
         static_transform_publisher,
         joint_state_broadcaster,
         controllers,
-        rviz if load_rviz else skip,
+        rviz if use_rviz else skip,
         moveit if moveit_mode != "off" else skip,
         joy,
         joy_topic_manager if moveit_mode == "servo" else skip,
