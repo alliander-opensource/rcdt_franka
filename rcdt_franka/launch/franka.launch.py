@@ -13,6 +13,7 @@ from rcdt_utilities.launch_utils import (
 )
 
 use_sim_arg = LaunchArgument("simulation", True, [True, False])
+load_gazebo_ui_arg = LaunchArgument("load_gazebo_ui", False, [True, False])
 use_rviz_arg = LaunchArgument("rviz", True, [True, False])
 use_realsense_arg = LaunchArgument("realsense", False, [True, False])
 moveit_mode_arg = LaunchArgument("moveit", "off", ["node", "rviz", "servo", "off"])
@@ -20,6 +21,7 @@ moveit_mode_arg = LaunchArgument("moveit", "off", ["node", "rviz", "servo", "off
 
 def launch_setup(context: LaunchContext) -> None:
     use_sim = use_sim_arg.value(context)
+    load_gazebo_ui = load_gazebo_ui_arg.value(context)
     use_rviz = use_rviz_arg.value(context)
     use_realsense = use_realsense_arg.value(context)
     moveit_mode = moveit_mode_arg.value(context)
@@ -39,7 +41,11 @@ def launch_setup(context: LaunchContext) -> None:
 
     if use_sim:
         robot = IncludeLaunchDescription(
-            get_file_path("rcdt_utilities", ["launch"], "gazebo_robot.launch.py")
+            get_file_path("rcdt_utilities", ["launch"], "gazebo_robot.launch.py"),
+            launch_arguments={
+                "realsense": str(use_realsense),
+                "load_gazebo_ui": str(load_gazebo_ui),
+            }.items(),
         )
     else:
         robot = IncludeLaunchDescription(
@@ -68,12 +74,16 @@ def launch_setup(context: LaunchContext) -> None:
         }.items(),
     )
 
+    rviz_launch_arguments = {
+        "moveit": moveit_mode,
+        "moveit_package_name": "rcdt_franka_moveit_config",
+    }
+    if use_realsense:
+        display_config = get_file_path("rcdt_utilities", ["rviz"], "realsense.rviz")
+        rviz_launch_arguments["rviz_display_config"] = display_config
     rviz = IncludeLaunchDescription(
         get_file_path("rcdt_utilities", ["launch"], "rviz.launch.py"),
-        launch_arguments={
-            "moveit": moveit_mode,
-            "moveit_package_name": "rcdt_franka_moveit_config",
-        }.items(),
+        launch_arguments=rviz_launch_arguments.items(),
     )
 
     moveit = IncludeLaunchDescription(
@@ -136,6 +146,7 @@ def generate_launch_description() -> LaunchDescription:
     return LaunchDescription(
         [
             use_sim_arg.declaration,
+            load_gazebo_ui_arg.declaration,
             use_rviz_arg.declaration,
             use_realsense_arg.declaration,
             moveit_mode_arg.declaration,
